@@ -232,7 +232,7 @@ def load(fname, game, agent):
 def writeinfo(trainfilename,game,agent,init=True):
     global optimalPolicyFound
     infofile = open("data/"+trainfilename +".info","a+")
-    allinfofile = open("data/all.info","a+")
+    allinfofile = open("data/all.info", "a+")
 
     strtime = strftime("%Y-%m-%d %H:%M:%S", gmtime())
 
@@ -379,41 +379,43 @@ def learn(game, agent, maxtime=-1, stopongoal=False):
     
 
 # evaluation process
-def evaluate(game, agent, n): # evaluate best policy n times (no updates)
-    i=0
+def evaluate(game, agent, n):  # evaluate best policy n times (no updates)
+    # time.sleep(20)
+    i = 0
     run = True
     game.sleeptime = 0.001
     if (game.gui_visible):
         game.sleeptime = 0.1
-        game.pause = True
-        
-    while (i<n and run):
+    #     game.pause = True
+
+    while (i < n and run):
         game.reset()
         game.draw()
         time.sleep(game.sleeptime)
 
         agent.optimal = True
-        while (run and not game.finished):
-            run = game.input()
-            if game.pause:
-                time.sleep(1)
-                continue
+        while (not game.finished):
+            # run = game.input()
+            # if game.pause:
+            #     time.sleep(1)
+            #     continue
             execution_step(game, agent)
             game.draw()
-            time.sleep(game.sleeptime)        
+            time.sleep(game.sleeptime)
         game.print_report(printall=True)
-        if (game.gui_visible):
-            n=3
-            j=0
-            while (j<n):
-                time.sleep(1)
-                game.input()
-                if game.pause:
-                    time.sleep(1)
-                j += 1
-            time.sleep(3)
+        # if (game.gui_visible):
+        #     n=3
+        #     j=0
+        #     while (j<n):
+        #         time.sleep(1)
+        #         game.input()
+        #         if game.pause:
+        #             time.sleep(1)
+        #         j += 1
+        #     time.sleep(3)
         i += 1
     agent.optimal = False
+    print('Finished')
 
 
 

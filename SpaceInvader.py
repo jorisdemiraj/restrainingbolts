@@ -222,6 +222,7 @@ class SpaceInvader(object):
 
 
     def goal_reached(self):
+        #print("you freeze it")
         return len(self.aliens) == 0
         
         
@@ -268,12 +269,12 @@ class SpaceInvader(object):
             self.current_reward += self.STATES['Alive']
    
             #move the aliens
-            self.dropper=0
+            self.dropper=0.02
             for alien in self.aliens:
                 alien.x+=self.mover
                 alien.y+=self.dropper
-                if(alien.x==self.win_width-1 or alien.x==1):
-                    self.dropper=1
+                if(alien.x>self.win_width-2 or alien.x<2):
+                    
                     self.mover=-self.mover
             
                 alien.rect = pygame.Rect(alien.x, alien.y, block_width, block_height)
@@ -307,8 +308,8 @@ class SpaceInvader(object):
                     break
                 else: end1= False
             end2 = self.goal_reached()
-            end3 = self.shooter_hit_without_alien == 30
-            end3b = self.numactions > 500 * self.alien_cols
+            end3 = self.shooter_hit_without_alien == 100
+            end3b = self.numactions > 1000 * self.alien_cols
             end4 = len(self.aliens) == 0
             if (end1 or end2 or end3 or end3b or end4):
                 if (pygame.display.get_active() and (not self.se_wall is None)):

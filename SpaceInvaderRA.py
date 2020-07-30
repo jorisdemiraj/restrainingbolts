@@ -4,15 +4,11 @@
 # Luca Iocchi 2017
 #
 
-import pygame, sys
+import sys
 import numpy as np
-import atexit
 import random
-import time
-import math
-from math import fabs
 
-from SpaceInvader import *
+from code.SpaceInvader import *
 
 np.set_printoptions(precision=3)
 
@@ -22,8 +18,11 @@ class RewardAutoma(object):
 
     def __init__(self, alien_cols=0,alien_rows=0,nrstates=0, left_right=True): # alien_cols=0 -> RA disabled
         # RA states
+        self.totalscore=[]
+        self.totalreward=[]
         self.alien_cols = alien_cols
         self.alien_rows = alien_rows
+        self.totalAliens=nrstates
         if (self.alien_rows>0):
             self.nRAstates = nrstates+2  # number of RA states
             self.RAGoal = self.nRAstates-2
@@ -155,8 +154,8 @@ class RewardAutoma(object):
         return self.success/self.visits
 
     def print_successrate(self):
-        
-        print('RA success: %s' %str(self.successrate))
+        success=self.current_successrate()
+        print('RA success: %s' %str(success))
 
 
 
@@ -165,6 +164,8 @@ class SpaceInvaderSRA(SpaceInvaderS):
     def __init__(self, alien_rows=3, alien_cols=3, trainsessionname='test'):
         SpaceInvaderS.__init__(self,alien_rows, alien_cols, trainsessionname)
         self.RA = RewardAutoma(alien_cols, alien_rows,alien_cols*alien_rows, False)
+        self.totalscore=[]
+        self.totalreward=[]
         self.RA.init(self)
         self.STATES = {
             'Init':0,
@@ -213,20 +214,22 @@ class SpaceInvaderSRA(SpaceInvaderS):
 
     def reset(self):
         super(SpaceInvaderSRA, self).reset()
+     
         self.RA.reset()
+
         self.RA_exploration()
 
     def update(self, a):
         super(SpaceInvaderSRA, self).update(a)
         (RAr, state_changed) = self.RA.update()
         if (state_changed):
-            print(self.current_reward)
+            #print(self.current_reward)
             self.RA_exploration()
         self.current_reward += RAr
       
      
-    def goal_reached(self):
-        return self.RA.goal
+    #def goal_reached(self):
+        #return self.RA.goal
        
     def getreward(self):
         r = self.current_reward
@@ -251,8 +254,9 @@ class SpaceInvaderSRA(SpaceInvaderS):
             
         RAnode = len(self.RA.current_node)
 
-        s = 'Iter %6d, b_hit: %3d, p_hit: %3d, na: %4d, r: %5d, RA: %d, mem: %d/%d  %c' %(self.iteration, self.score, self.shooter_hit_count,self.numactions, self.cumreward, RAnode, len(self.agent.Q), len(self.agent.SA_failure), ch)
-
+        s = 'Iter %6d, aliens_hit: %3d,  na: %4d, reward: %5d, RA: %d, mem: %d/%d  %c' %(self.iteration, self.score,self.numactions, self.cumreward, RAnode, len(self.agent.Q), len(self.agent.SA_failure), ch)
+        self.totalscore.append(self.score)
+        self.totalreward.append(self.cumreward)
         if self.score > self.hiscore:
             self.hiscore = self.score
             s += ' HISCORE '
@@ -267,10 +271,16 @@ class SpaceInvaderSRA(SpaceInvaderS):
 
         self.cumreward100 += self.cumreward
         self.cumscore100 += RAnode
-        numiter = 100
+        self.goalscore=float(100-(len(self.aliens)*100)/self.RA.totalAliens)
+        if(self.goalscore==0.0):
+            self.goalscore=100.0
+        elif(self.goalscore==100):
+            self.goalscore=0.0
+
+        numiter = 10
         if (self.iteration%numiter==0):
             #self.doSave()
-            self.report_str = "%s %6d/%4d avg last 100: reward %.1f | RA %.2f | p goals %.1f %% <<<" %(self.trainsessionname, self.iteration, self.elapsedtime, float(self.cumreward100/100), float(self.cumscore100)/100, float(self.RA.goalreached*100)/numiter)
+            self.report_str = "%s %6d/%4d avg last 100: reward %.1f | RA %.2f |  goals %.1f %% <<<" %(self.trainsessionname, self.iteration, self.elapsedtime, float(self.cumreward100/100), float(self.cumscore100)/100, self.goalscore)
             print('-----------------------------------------------------------------------')
             print(self.report_str)
             self.RA.print_successrate()
@@ -283,8 +293,8 @@ class SpaceInvaderSRA(SpaceInvaderS):
         sys.stdout.flush()
         
         self.vscores.append(self.score)
-        #self.resfile.write("%d,%d,%d,%d,%d\n" % (RAnode, self.cumreward, self.goal_reached(),self.numactions,self.agent.optimal))
-        self.resfile.write("%d,%d,%d,%d,%d,%d,%d\n" % (self.iteration, self.elapsedtime, RAnode, self.cumreward, self.goal_reached(),self.numactions,self.agent.optimal))
+        self.resfile.write("%d,%d,%d,%d,%d\n" % (self.elapsedtime,self.score,self.cumreward, self.goal_reached(),self.agent.optimal))
+        #self.resfile.write("%d,%d,%d,%d,%d,%d,%d\n" % (self.iteration, self.elapsedtime, RAnode, self.cumreward, self.goal_reached(),self.numactions,self.agent.optimal))
         self.resfile.flush()
 
 

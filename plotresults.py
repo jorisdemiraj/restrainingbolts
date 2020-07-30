@@ -40,7 +40,8 @@ def getplotdata(tm,data):
     ybot = []  # confidence interval (bottom-edge)
 
     n = len(data)
-    d = int(n/100) # size of interval
+    print(n)
+    d = int(n/1) # size of interval
 
     for i in range(0,int(n/d)):
         di = data[i*d:min(n,(i+1)*d)]
@@ -87,6 +88,7 @@ def plotdata(datafiles, save):
 
     for f in datafiles:
         tm,rv,fname = loaddata(f)
+        
         if tm is not None:
             x,y,ytop,ybot = getplotdata(tm,rv)
             xx += [x]
